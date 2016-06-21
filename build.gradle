@@ -1,0 +1,42 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+
+allprojects {
+	apply plugin: 'java'
+
+	repositories {
+    mavenCentral()
+	}
+
+	dependencies {
+		testCompile 'junit:junit:4.8.2'
+	}
+}
+
+test {
+    if (project.hasProperty('maxParallelForks')) maxParallelForks = project.maxParallelForks as int
+    if (project.hasProperty('forkEvery')) forkEvery = project.forkEvery as int
+}
+
+ext.modules = 100
+
+def settingsFile = new File('settings.gradle')
+
+task createModules << {
+    (1..modules).each { moduleCounter ->
+        def moduleName = "module${moduleCounter}"
+				def testClassName = "GradleTest${moduleCounter}"
+				copy {
+						from 'src/templates'
+						into "${moduleName}/src/test/java"
+            expand([testClassName: testClassName])
+						rename '(.*).java', "gradletest/${testClassName}.java"
+						include 'SampleTest.java'
+				}
+        settingsFile << "include '${moduleName}'\n"
+    }
+}
